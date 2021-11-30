@@ -52,6 +52,9 @@ public class ControllerImpl implements Controller {
     public String addPeripheral(int computerId, int id, String peripheralType, String manufacturer, String model, double price, double overallPerformance, String connectionType) {
         checkComputerId(computerId);
         Peripheral peripheral;
+        if (peripherals.stream().anyMatch(peripheral1 -> peripheral1.getId() == id)){
+            throw new IllegalArgumentException(EXISTING_PERIPHERAL_ID);
+        }
         if (peripheralType.equals("Headset")){
             peripheral = new Headset(id,manufacturer,model,price,overallPerformance,connectionType);
         }else if (peripheralType.equals("Keyboard")){
@@ -63,10 +66,11 @@ public class ControllerImpl implements Controller {
         }else {
             throw new IllegalArgumentException(INVALID_PERIPHERAL_TYPE);
         }
-
         if (peripherals.contains(peripheral)){
             throw new IllegalArgumentException(EXISTING_PERIPHERAL_ID);
         }
+
+
 
         computers.get(computerId).addPeripheral(peripheral);
         peripherals.add(peripheral);
