@@ -1,0 +1,18 @@
+CREATE TABLE `people` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(200) NOT NULL,
+    `picture` BLOB,
+    `height` FLOAT(5 , 2 ),
+    `weight` FLOAT(5 , 2 ),
+    `gender` CHAR(1) NOT NULL,
+    `birthdate` DATE NOT NULL,
+    `biography` TEXT
+);
+
+INSERT INTO `people` 
+VALUES
+(1, 'Ddaniel', NULL, 10.34, 150.23, 'm', '2008-11-11', "I am Dimitur"),
+(2, 'Daniel', NULL, 10.34, 150.23, 'm', '2008-11-11', "I am Dimitur"),
+(3, 'Gosho', NULL, 10.34, 150.23, 'm', '2008-11-11', "I am Dimitur"),
+(4, 'Pesho', NULL, 10.34, 150.23, 'm', '2008-11-11', "I am Dimitur"),
+(5, 'Alko', NULL, 10.34, 150.23, 'm', '2008-11-11', "I am Dimitur");

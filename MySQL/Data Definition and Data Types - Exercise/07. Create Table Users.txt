@@ -1,0 +1,15 @@
+create table `users`(
+	`id` int primary key auto_increment,
+    `username` varchar(30) not null,
+    `password` varchar(26) not null,
+    `profile_picture` blob,
+    `last_login_time` time,
+    `is_deleted` bool
+);
+insert into `users`
+values
+	(1, 'pesho','user',null,'19:30:20',0),
+	(2, 'pesho','user',null,'19:30:20',0),
+	(3, 'pesho','user',null,'19:30:20',0),
+	(4, 'pesho','user',null,'19:30:20',0),
+	(5, 'pesho','user',null,'19:30:20',0);
