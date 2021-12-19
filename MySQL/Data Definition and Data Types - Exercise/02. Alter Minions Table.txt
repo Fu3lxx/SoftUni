@@ -1,5 +1,0 @@
-ALTER TABLE `minions` 
-ADD COLUMN `town_id` INT,
-add constraint fk_minions_tawns
-foreign key `minions` (`town_id`)
-references `towns` (`id`);

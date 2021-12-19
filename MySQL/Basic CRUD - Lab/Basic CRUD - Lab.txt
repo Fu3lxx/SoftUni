@@ -1,0 +1,33 @@
+1
+select `id`,`first_name`, `last_name`,`job_title` from `employees`;
+------------------------------------
+2
+SELECT `id`, concat(`first_name`, ' ', `last_name`) as full_name , `job_title`, `salary` 
+from `employees`
+where `salary` > 1000
+order by id;
+-------------------------------------
+3
+update `employees`
+set `salary` = `salary`  + 100
+where `job_title` = 'Manager';
+select `salary` from `employees`;
+-----------------------------------------
+4
+create view `v_top_paid_employee`
+as
+select * from `employees`
+order by `salary` desc limit 1;
+select * from `v_top_paid_employee`;
+------------------------------------------
+5
+select * from `employees`
+where `department_id` = 4 and `salary` >= 1000;
+--------------------------------
+6
+delete from `employees`
+where `department_id` = 1
+or `department_id` = 2;
+
+select * from `employees`
+order by `id`;
