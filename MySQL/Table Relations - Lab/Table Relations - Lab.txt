@@ -1,0 +1,41 @@
+----------------------------------------------
+ 1
+CREATE table `Mountains`(
+	`id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(50)
+);
+CREATE TABLE `Peaks`(
+	`id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(50),
+    `mountain_id` INT,
+    CONSTRAINT `fk_mountain_id` FOREIGN KEY (`mountain_id`)
+    REFERENCES `Mountains`(`id`)
+);
+
+----------------------------------------------
+2
+SELECT `driver_id`, `vehicle_type`, CONCAT(`first_name`,' ',`last_name`) as 'driver_name'
+FROM `vehicles` as a
+JOIN `campers` as c
+ON a.driver_id = c.id;
+ 
+----------------------------------------------
+ 3
+SELECT `starting_point`, `end_point`, `leader_id`, Concat(`first_name`, ' ' , `last_name`) as `leader_name`
+FROM `routes` as r
+JOIN `campers` as c
+ON r.`leader_id` = c.`id`;
+----------------------------------------------
+ 
+----------------------------------------------
+ 
+----------------------------------------------
+ 
+----------------------------------------------
+ 
+----------------------------------------------
+ 
+----------------------------------------------
+ 
+----------------------------------------------
+ 
