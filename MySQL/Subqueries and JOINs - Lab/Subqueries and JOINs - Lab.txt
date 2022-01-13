@@ -1,0 +1,37 @@
+-----------------------------------------------------
+1
+SELECT e.`employee_id`, concat(e.`first_name`,' ',e.`last_name`) AS 'full_name', d.`department_id`,d.`name`
+FROM `employees` as e
+JOIN `departments` as d
+ON d.`manager_id` = e.`employee_id`
+ORDER BY e.`employee_id`
+LIMIT 5;
+
+ 
+-----------------------------------------------------
+2
+SELECT t.`town_id`, t.`name`, a.`address_text`
+FROM `towns` as t
+JOIN `addresses` as a
+ON t.`town_id` = a.`town_id`
+WHERE t.`name` in ('San Francisco','Sofia','Carnation')
+ORDER  BY t.`town_id`,a.`address_id`;
+ 
+-----------------------------------------------------
+3
+SELECT `employee_id`, `first_name`, `last_name`, `department_id`, `salary`
+FROM `employees`
+WHERE `manager_id` is NULL;
+ 
+-----------------------------------------------------
+4
+SELECT count(`employee_id`)
+FROM `employees`
+WHERE `salary` > (SELECT AVG(`salary`) FROM `employees`);
+ 
+-----------------------------------------------------
+ 
+-----------------------------------------------------
+ 
+-----------------------------------------------------
+ 
