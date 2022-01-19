@@ -1,0 +1,60 @@
+--------------------------------------------------
+1
+CREATE FUNCTION `ufn_count_employees_by_town`(town_name varchar (20))
+RETURNS INTEGER
+deterministic
+BEGIN
+declare  result int;
+SET result :=(
+SELECT count(e.`employee_id`) as 'count'
+FROM `employees` as e
+JOIN `addresses` as a
+ON e.address_id = a.address_id
+JOIN `towns` as t
+ON a.town_id = t.town_id
+WHERE t.`name` = `town_name`);
+RETURN `result`;
+END
+  
+--------------------------------------------------
+2
+CREATE PROCEDURE usp_raise_salaries(department_name varchar(20))
+BEGIN
+UPDATE employees as e
+JOIN `departments` as d
+using (`department_id`)
+SET e.`salary` = e.`salary` * 1.05
+WHERE d.`name` = department_name;
+END
+  
+--------------------------------------------------
+3
+
+CREATE PROCEDURE usp_raise_salary_by_id(id int) 
+BEGIN
+UPDATE employees as e
+SET e.`salary` = e.`salary` * 1.05
+WHERE e.employee_id = id;
+END
+
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
+--------------------------------------------------
+  
