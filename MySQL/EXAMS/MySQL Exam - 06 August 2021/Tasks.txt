@@ -1,0 +1,183 @@
+==========================
+1
+create table addresses (
+	id int primary key auto_increment,
+    `name` varchar(50) not null
+);
+
+create table categories(
+	id int primary key auto_increment,
+    `name` varchar(10) not null
+);
+
+create table offices(
+	id int primary key auto_increment,
+    workspace_capacity int not null,
+    website varchar(50),
+    address_id int,
+    constraint fk_offices_adressses
+    foreign key (address_id)
+    references addresses(id)
+);
+
+create table employees (
+	id int primary key auto_increment,
+    first_name varchar(30) not null,
+    last_name varchar(30) not null,
+    age int not null,
+    salary decimal(10,2) not null,
+    job_title varchar(20) not null,
+    happiness_level char not null
+);
+
+create table teams(
+	id int primary key auto_increment,
+    `name` varchar(40) not null,
+    office_id int not null,
+    leader_id int unique not null,
+    constraint fk_teams_offices
+    foreign key (office_id)
+    references offices(id),
+    constraint fk_teams_employees
+    foreign key (leader_id)
+    references employees(id)
+);
+
+create table games (
+	id int primary key auto_increment,
+    `name` varchar(50) not null unique,
+    description text,
+    rating float default 5.5 not null,
+    budget decimal (10,2) not null,
+    release_date date,
+    team_id int not null,
+    constraint fk_games_teams
+    foreign key (team_id)
+    references teams(id)
+);
+
+create table games_categories (
+	game_id int not null,
+    category_id int not null,
+    constraint pk_game_category
+    primary key (game_id,category_id),
+    constraint fk_game_categories_games
+    foreign key (game_id)
+    references games(id),
+    constraint fk_games_categories_categories
+    foreign key (category_id)
+    references categories(id)
+);
+==========================
+2 
+insert into  `games`(`name`,rating,budget,team_id)
+select lower(reverse(substr(name,2))), id, leader_id*1000, id
+from teams
+where id between 1 and 9;
+==========================
+3
+update employees 
+set salary = salary + 1000
+where id IN 
+(select leader_id from teams) and  age < 40 and salary <= 5000;
+ 
+==========================
+4
+delete from games as g
+where release_date is null and id not in (select game_id from games_categories);
+ 
+==========================
+5
+select first_name, last_name, age, salary, happiness_level
+FROM employees
+order by salary, id;
+==========================
+6
+select t.name, a.name, character_length(a.name)
+from teams as t
+join offices as o
+on t.office_id = o.id
+join addresses as a
+on o.address_id = a.id
+where o.website is not null
+order by t.name,a.name;
+ 
+==========================
+7
+select c.name, count(g.id) as `count`, round(avg(g.budget),2), max(g.rating) as max_rating
+from games as g
+join games_categories as gc
+on g.id = gc.game_id
+join categories as c
+on c.id = gc.category_id
+group by c.name
+having max_rating >9.4
+order by `count` desc, c.`name`;
+ 
+==========================
+ 8
+select g.name, g.release_date, concat(left(g.`description`,10),'...') as summary, concat('Q',quarter(g.release_date)) AS quarter, t.name as team_name
+from games as g
+join teams as t
+on g.team_id = t.id
+where g.name like '%2' and month(g.release_date) % 2 = 0 and year(g.release_date) = 2022
+order by `quarter`
+;
+==========================
+ 9
+select g.name, if(g.budget <50000, 'Normal budget','Insufficient budget') as budget_level, t.name,a.name
+from games as g
+left join games_categories as gc
+on g.id = gc.game_id
+join teams as t
+on g.team_id = t.id
+join offices as o
+on t.office_id = o.id
+join addresses as a
+on o.address_id = a.id
+where g.release_date is null and gc.category_id is null
+group by g.name
+order by g.name;
+==========================
+10
+CREATE FUNCTION `udf_game_info_by_name`(game_name VARCHAR (20)) RETURNS varchar(150) CHARSET utf8mb4
+    DETERMINISTIC
+BEGIN
+declare team_name varchar (20);
+declare address_text varchar (100);
+set team_name = (select t.name from teams as t join games as g on g.team_id = t.id where g.name = game_name);
+set address_text = (
+select a.name from addresses as a
+join offices as o
+on a.id = o.address_id
+join teams as t
+on o.id = t.office_id
+join games as g
+on g.team_id = t.id
+where g.name = game_name);
+
+
+RETURN concat('The ',game_name,' is developed by a ',team_name,' in an office with an address ',address_text);
+END
+ 
+==========================
+11
+CREATE PROCEDURE `udp_update_budget` (min_game_rating float)
+BEGIN
+update games as g 
+set g.budget = g.budget + 100000, 
+g.release_date = DATE_ADD(g.release_date, INTERVAL 1 YEAR)
+where g.id not in (select game_id from games_categories) and g.rating > min_game_rating and g.release_date is not null;
+
+END
+ 
+==========================
+ 
+==========================
+ 
+==========================
+ 
+==========================
+ 
+==========================
+ 
