@@ -1,0 +1,201 @@
+==============================
+ 1
+
+
+CREATE TABLE countries (
+	id int primary key auto_increment,
+    `name` varchar(45) not null
+);
+
+CREATE TABLE towns(
+	id int primary key auto_increment,
+    `name` varchar(45) not null,
+    country_id int,
+    
+    constraint fk_towns_countries
+    foreign key (country_id)
+    references countries(id)
+);
+
+CREATE TABLE stadiums (
+	id int primary key auto_increment,
+    `name` varchar(45) not null,
+    capacity int not null,
+    town_id int,
+    
+    constraint fk_stadiums_towns
+    foreign key (town_id)
+    references towns(id)
+);
+
+CREATE TABLE teams (
+	id int primary key auto_increment,
+    `name` varchar(45) not null,
+    established date not null,
+    fan_base bigint(20) not null,
+    stadium_id int,
+    
+    constraint fk_teams_stadiums
+    foreign key (stadium_id)
+    references stadiums(id)
+);
+
+CREATE TABLE skills_data (
+	id int primary key auto_increment,
+    dribbling int default 0,
+    pace int default 0,
+    passing int default 0,
+    shooting int default 0,
+    speed int default 0,
+    strength int default 0
+);
+
+CREATE TABLE players (
+	id int primary key auto_increment,
+    first_name varchar(10) not null,
+    last_name varchar(20) not null,
+    age int default 0 not null,
+    `position` char not null,
+    salary decimal(10,2) default 0 not null,
+    hire_date datetime,
+    skills_data_id int not null,
+    team_id int,
+    
+    constraint fk_players_skills_data
+    foreign key (skills_data_id)
+    references skills_data(id),
+    constraint fk_players_teams
+    foreign key (team_id)
+    references teams(id)
+);
+
+CREATE TABLE coaches (
+	id int primary key auto_increment,
+    first_name varchar(10) not null,
+    last_name varchar(20) not null,
+    salary decimal (10,2)  default 0 not null,
+    coach_level int default 0 not null
+);
+
+CREATE TABLE players_coaches (
+	player_id int,
+    coach_id int,
+    
+    constraint pk_coaches
+    primary key (player_id, coach_id),
+    
+    constraint fk_players_coaches_players
+    foreign key (player_id)
+    references players(id),
+    constraint fk_players_coaches_coaches
+    foreign key (coach_id)
+    references coaches(id)
+);
+==============================
+2 error???
+
+INSERT INTO coaches (first_name, last_name, salary, coach_level)
+select first_name, last_name, salary * 2, char_length(first_name)
+from players 
+where age >= 45;
+ 
+==============================
+3
+
+update coaches 
+set coach_level = cc.coach_level
+where first_name like 'A%'
+AND id = (select coach_id from players_coaches where coach_id = id limit 1);
+
+
+ 
+==============================
+4
+delete from players 
+where age >= 45;
+ 
+==============================
+5
+select first_name, age, salary
+from players
+order by salary desc;
+ 
+==============================
+6
+select p.id, concat(p.first_name,' ',last_name)as full_name, p.age, p.`position`,hire_date
+from players as p
+join skills_data as s
+on p.skills_data_id = s.id
+where p.age < 23 and p.`position` = 'A' and hire_date is null and s.strength > 50
+order by p.salary ,age;
+ 
+==============================
+7
+select t.name, t.established, t.fan_base , (select count(id) from players as p where p.team_id  = t.id ) as players_count
+from teams as t
+order by players_count desc, fan_base desc;
+ 
+==============================
+8
+select max(sd.speed) as max_speed, towns.`name`
+from players as p
+right join skills_data as sd on p.skills_data_id = sd.id
+right join teams as t on p.team_id = t.id
+right join stadiums as s on t.stadium_id = s.id
+right join towns on s.town_id = towns.id
+where t.name != 'Devify'
+group by towns.name
+order by max_speed desc, towns.name asc;
+==============================
+9
+select co.name, count(pl.id) as total_count_of_players, sum(pl.salary) as total_sum_of_salaries
+from countries as co
+left join towns as tow on tow.country_id = co.id
+left join stadiums as sta on sta.town_id = tow.id
+left join teams as te on  te.stadium_id = sta.id
+left join players as pl on pl.team_id = te.id
+group by co.name
+order by total_count_of_players desc, co.name;
+
+ 
+==============================
+10
+CREATE FUNCTION `udf_stadium_players_count` (stadium_name varchar(30))
+RETURNS INTEGER
+deterministic
+BEGIN
+declare  ppl_count int;
+set ppl_count := (select count(pl.id)
+from players as pl
+join teams as tm on tm.id = pl.team_id
+join stadiums as st on  st.id = tm.stadium_id
+where st.name = stadium_name);
+
+RETURN ppl_count;
+END
+
+ 
+==============================
+11
+CREATE  PROCEDURE `udp_find_playmaker`(min_dribble_points int, team_name varchar(45))
+BEGIN
+declare team_id int;
+set team_id = (select id from teams where name = team_name);
+
+select concat(p.first_name,' ',p.last_name) as full_name, p.age, p.salary, sk.dribbling, sk.speed, team_name
+from players as p
+join skills_data as sk on p.skills_data_id = sk.id
+where p.team_id = team_id and sk.dribbling > min_dribble_points and sk.speed > 
+(select avg(sd.speed)
+from skills_data as sd
+join players as p on sd.id = p.skills_data_id
+join teams as t on t.id = p.team_id
+where t.name = team_name)
+order by sk.speed desc limit 1 ;
+
+END
+ 
+==============================
+ 
+==============================
+ 
