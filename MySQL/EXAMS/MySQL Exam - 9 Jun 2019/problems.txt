@@ -1,0 +1,117 @@
+==========================================
+1
+create table branches(
+	id int primary key auto_increment,
+    `name` varchar(30) not null unique
+);
+
+create table employees (
+	id int primary key auto_increment,
+    first_name varchar(20) not null,
+    last_name varchar(20) not null,
+    salary decimal(10,2) not null,
+    started_on date not null,
+    branch_id int not null,
+    
+    constraint fk_employees_branches
+    foreign key (branch_id)
+    references branches(id)
+);
+
+create table clients(
+	id int primary key auto_increment,
+    full_name varchar(50) not null,
+    age int not null
+);
+
+create table employees_clients(
+	employee_id int,
+    client_id int,
+    
+    constraint fk_employees_clients_employees
+    foreign key (employee_id)
+    references employees(id),
+    constraint fk_employees_clients_clients
+    foreign key (client_id)
+    references clients(id)
+);
+
+create table bank_accounts(
+	id int primary key auto_increment,
+    account_number varchar(10) not null,
+    balance decimal(10,2) not null,
+    client_id int not null unique,
+    
+    constraint fk_bank_accounts_clients
+    foreign key (client_id)
+    references clients(id)
+);
+
+create table cards (
+	id int primary key auto_increment,
+    card_number varchar(19) not null,
+    card_status varchar(7) not null,
+    bank_account_id int not null,
+    
+    constraint fk_cards_bank_accounts
+    foreign key (bank_account_id)
+    references bank_accounts(id)
+);
+ 
+==========================================
+ 2
+insert into cards (card_number, card_status, bank_account_id)
+select reverse( full_name), 'Active', id
+from clients
+where id between 191 and 200;
+ 
+==========================================
+ 3
+ 
+==========================================
+ 4
+delete from employees where id in(select * from (select id
+from employees as e
+left join employees_clients as ec
+on e.id = ec.employee_id
+where client_id is null)as x );
+ 
+==========================================
+ 5
+select id , full_name
+from clients
+order by id;
+ 
+==========================================
+ 6
+select id, concat(first_name, ' ',last_name), concat('$',salary), started_on
+from employees
+where salary >= 100000 and started_on >= '2018-01-01'
+order by salary desc,id;
+==========================================
+ 7
+select c.id, concat(c.card_number,' : ', cl.full_name)
+from cards as c
+join bank_accounts as b on c.bank_account_id = b.id
+join clients as cl on b.client_id = cl.id
+order by c.id desc;
+==========================================
+8
+select concat(e.first_name,' ',last_name) as `name`, e.started_on, (select count(employee_id) from employees_clients where employee_id = e.id) as count_of_clients
+from employees as e
+
+order by count_of_clients desc, e.id
+limit 5;
+ 
+==========================================
+ 
+==========================================
+ 
+==========================================
+ 
+==========================================
+ 
+==========================================
+ 
+==========================================
+ 
