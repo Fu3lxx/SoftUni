@@ -1,0 +1,231 @@
+======================================
+======================================
+0
+CREATE TABLE planets (
+	id int primary key auto_increment,
+    `name` varchar(30) not null
+);
+
+CREATE TABLE spaceports (
+	id int primary key auto_increment,
+    name varchar(50) not null,
+    planet_id int,
+    
+    constraint fk_spaceports_planets
+    foreign key (planet_id)
+    references planets(id)
+);
+
+CREATE TABLE spaceships (
+	id int primary key auto_increment,
+    name varchar(50) not null,
+    manufacturer varchar(30) not null,
+    light_speed_rate int default 0
+);
+
+CREATE TABLE  colonists (
+	id int primary key auto_increment,
+    first_name varchar(20) not null,
+    last_name varchar(20) not null,
+    ucn char(10) not null unique,
+    birth_date date not null
+);
+
+CREATE TABLE journeys (
+	id int primary key auto_increment,
+    journey_start datetime not null,
+    journey_end datetime not null,
+    purpose enum('Medical', 'Technical', 'Educational', 'Military') not null,
+    destination_spaceport_id int,
+    spaceship_id int,
+    
+    constraint fk_journeys_spaceports
+    foreign key (destination_spaceport_id)
+    references spaceports(id),
+    constraint fk_journeys_spaceships
+    foreign key (spaceship_id)
+    references spaceships(id)
+);
+
+CREATE TABLE travel_cards (
+	id int primary key auto_increment,
+    card_number char(10) not null unique,
+    job_during_journey enum  ('Pilot', 'Engineer', 'Trooper', 'Cleaner', 'Cook') not null,
+    colonist_id int,
+    journey_id int,
+    
+    constraint fk_traver_cards_colonists
+    foreign key (colonist_id)
+    references colonists(id),
+    constraint fk_travel_cards_journeys
+    foreign key (journey_id)
+    references journeys(id)
+);
+ 
+======================================
+======================================
+1
+INSERT INTO travel_cards (card_number ,job_during_journey, colonist_id, journey_id)
+(select if(birth_date > '1980-01-01', 
+concat(year(birth_date),day(birth_date),left(ucn,4)),
+concat(year(birth_date),month(birth_date),right(ucn,4))),
+if(id % 2 = 0, 'Pilot',if(id % 3 = 0, 'Cook','Engineer')),
+id,
+left(ucn,1)
+from colonists
+where id between 96 and 100);
+ 
+======================================
+======================================
+ 2
+update journeys set purpose = (
+case
+    when id % 2 = 0 then 'Medical'
+    when id % 3 = 0 then 'Technical'
+    when id % 5 = 0 then 'Educational'
+    when id % 7 = 0 then 'Military'
+end
+)
+where id % 2 =0 or id % 3 = 0 or id % 5 = 0 or id % 7 = 0;
+======================================
+======================================
+ 3
+delete from colonists
+where id not in (select tc.colonist_id from travel_cards tc);
+======================================
+======================================
+4
+select card_number, job_during_journey
+from travel_cards
+order by card_number;
+
+ 
+======================================
+======================================
+5
+select id , concat(first_name, ' ', last_name),ucn
+from colonists
+order by first_name, last_name, id;
+ 
+======================================
+======================================
+6
+select j.id, j.journey_start, j.journey_end
+from journeys j
+where purpose = 'military'
+order by j.journey_start;
+ 
+======================================
+======================================
+7
+select c.id, concat(c.first_name , ' ', c.last_name)
+from colonists c 
+join travel_cards tc on c.id = tc.colonist_id
+where tc.job_during_journey = 'pilot'
+order by c.id;
+ 
+======================================
+======================================
+8
+select count(c.id)
+from colonists c
+join travel_cards tc on c.id = tc.colonist_id
+join journeys j on tc.journey_id = j.id
+where j.purpose = 'technical'
+ 
+======================================
+======================================
+ 9
+Select s.name, st.name
+from spaceships s
+join journeys j on s.id = j.spaceship_id
+join spaceports st on j.destination_spaceport_id = st.id
+order by s.light_speed_rate desc limit 1;
+
+======================================
+======================================
+10
+select ssh.name , ssh.manufacturer
+from colonists c
+join travel_cards tc on c.id = tc.colonist_id
+join journeys as j on tc.journey_id = j.id
+join spaceships ssh on ssh.id = j.spaceship_id
+where tc.job_during_journey = 'pilot' and 2019 - year(c.birth_date) < 30
+order by ssh.name;
+
+ 
+======================================
+======================================
+11
+select p.name, s.name
+from planets p
+join spaceports s on p.id = s.planet_id
+join journeys j on s.id = j.destination_spaceport_id
+where j.purpose = 'educational'
+order by s.name desc ;
+
+======================================
+======================================
+12
+select p.name , count(j.id) j_count
+from planets p
+join spaceports s on p.id = s.planet_id
+join journeys j on s.id = j.destination_spaceport_id
+group by p.name
+order by j_count desc, p.name asc;
+ 
+======================================
+======================================
+13
+select j.id , p.name, sp.name, j.purpose
+from journeys j
+join spaceports as sp on j.destination_spaceport_id = sp.id
+join planets as p on sp.planet_id = p.id
+order by datediff(j.journey_start,j.journey_end) desc limit 1;
+ 
+======================================
+======================================
+14
+select tc.job_during_journey from travel_cards tc
+where tc.journey_id = (
+	SELECT j.id
+  FROM journeys j
+  ORDER BY DATEDIFF(j.journey_end, j.journey_start) DESC
+  LIMIT 1
+)
+group by tc.job_during_journey
+order by count(tc.job_during_journey) asc
+limit 1;
+ 
+======================================
+======================================
+15
+CREATE FUNCTION `udf_count_colonists_by_destination_planet` (planet_name varchar(30))
+RETURNS INTEGER
+BEGIN
+
+RETURN (select count(tc.colonist_id) from travel_cards tc
+join journeys j on tc.journey_id = j.id
+join spaceports sp on j.destination_spaceport_id = sp.id
+join planets p on sp.planet_id = p.id
+where p.name  = planet_name);
+END
+ 
+======================================
+======================================
+16
+CREATE DEFINER=`root`@`localhost` PROCEDURE `udp_modify_spaceship_light_speed_rate`(spaceship_name VARCHAR(50), light_speed_rate_increse INT(11))
+BEGIN
+IF (select count(sp.id) from spaceships sp where sp.name = spaceship_name)
+	then update spaceships set light_speed_rate = light_speed_rate + light_speed_rate_increse where name = spaceship_name;
+ELSE
+	SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Spaceship you are trying to modify does not exists.';
+      ROLLBACK;
+END IF;
+    
+END
+ 
+======================================
+======================================
+ 
