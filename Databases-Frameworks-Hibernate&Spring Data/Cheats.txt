@@ -1,0 +1,6 @@
+-----------------------------------------------------------	
+primary key
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column
+-----------------------------------------------------------	
