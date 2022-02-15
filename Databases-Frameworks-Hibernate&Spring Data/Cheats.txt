@@ -1,6 +1,26 @@
 -----------------------------------------------------------	
-primary key
+PRIMARY KEY
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
 -----------------------------------------------------------	
+TABLE ANNOTATION, COLUM ANNOTATION, ABSTRACT CLASS
+@Entity
+@Table (name = "wizard_deposits")
+
+@Column (name = "quantity")
+
+@MappedSuperclass
+-----------------------------------------------------------
+ONE TO MANY BI + CASCADE
+
+unidirectional- map only in one class
+bidirectional - map in both classes 
+
+		   !name of the field!								     oposite table
+@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)  ALL PERSIST REMOVE...  + (targetEntity = Teacher.class)
+@ManyToOne(optional = false, cascade = CascadeType.ALL) <-optional: 
+
+@JoinColumn(name = "product_id", referencedColumnName = "id" 
+            , foreignKey = @ForeignKey(name = "FK_sale_product")) <-optional
+-----------------------------------------------------------
